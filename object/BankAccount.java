@@ -1,53 +1,67 @@
 package object;
 
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date;
+import java.util.Random;
 
 public class BankAccount {
 
-    private String accountHolderName; // final?
-    private String accountNumber; // final?
+    private final String accountHolderName; // final?
+    private final String accountNumber; // final?
     private float accountBalance;
+    private boolean isClosed;
+    private Date dateAccountCreated;
+    private Date dateAccountClosed;
+
     private List<String> transactions;
-    private boolean accountStatus;
-    private String dateAccountCreated;
-    private String dateAccountClosed;
-
-    
-
-
-
-    public BankAccount() {
-        System.out.println("Empty constructor called");
-    }
 
     
     public BankAccount(String accountHolderName) {
+        this.accountNumber = generateAccountNo();
         this.accountHolderName = accountHolderName;
-        accountBalance = 0;
-        this.transactions = new ArrayList<String>();
+        this.accountBalance = 0.0f;
+
+        ZoneId defaultZone = ZoneId.systemDefault();
+        this.dateAccountCreated = Date.from(LocalDate.now().atStartOfDay(defaultZone).toInstant());
+
+        if (transactions == null) {
+            this.transactions = new ArrayList<String>();
+        }
+        
     }
 
-    
 
-
-    public BankAccount(String accountHolderName, String accountNumber, float accountBalance, List<String> transactions,
-            boolean accountStatus, String dateAccountCreated, String dateAccountClosed) {
-        this.accountHolderName = accountHolderName;
-        this.accountNumber = accountNumber;
-        this.accountBalance = accountBalance;
-        this.transactions = transactions;
-        this.accountStatus = accountStatus;
-        this.dateAccountCreated = dateAccountCreated;
-        this.dateAccountClosed = dateAccountClosed;
-    }
 
 
     public BankAccount(String accountHolderName, float accountBalance) {
+        this.accountNumber = generateAccountNo();
         this.accountHolderName = accountHolderName;
         this.accountBalance = accountBalance;
+    }
+
+
+
+    private String generateAccountNo() {
+        int startAsciiNo = 65;
+        int endAsciiNo = 90;
+        int accountNumberLength = 10;
+
+        Random random = new Random();
+        String accountNumber = "";
+
+        for (int i = 0; i < accountNumberLength; i++) {
+            int randomValue = startAsciiNo + (int) (random.nextFloat() * (endAsciiNo - startAsciiNo + 1));
+
+            accountNumber = accountNumber + (char) randomValue;
+        }
+
+        return accountNumber;
     }
 
 
@@ -100,23 +114,31 @@ public class BankAccount {
 
 
 
-    public boolean isAccountStatus() {
-        return accountStatus;
+    public boolean isClosed() {
+        return isClosed;
     }
 
 
 
 
 
-    public void setAccountStatus(boolean accountStatus) {
-        this.accountStatus = accountStatus;
+    public void setIsClosed(boolean isClosed) {
+
+        if (isClosed) {
+        
+            ZoneId defaultZone = ZoneId.systemDefault();
+            this.dateAccountClosed = Date.from(LocalDate.now().atStartOfDay(defaultZone).toInstant());
+            this.isClosed = isClosed;
+
+        }
+        
     }
 
 
 
 
 
-    public String getDateAccountCreated() {
+    public Date getDateAccountCreated() {
         return dateAccountCreated;
     }
 
@@ -124,7 +146,7 @@ public class BankAccount {
 
 
 
-    public void setDateAccountCreated(String dateAccountCreated) {
+    public void setDateAccountCreated(Date dateAccountCreated) {
         this.dateAccountCreated = dateAccountCreated;
     }
 
@@ -132,7 +154,7 @@ public class BankAccount {
 
 
 
-    public String getDateAccountClosed() {
+    public Date getDateAccountClosed() {
         return dateAccountClosed;
     }
 
@@ -140,7 +162,7 @@ public class BankAccount {
 
 
 
-    public void setDateAccountClosed(String dateAccountClosed) {
+    public void setDateAccountClosed(Date dateAccountClosed) {
         this.dateAccountClosed = dateAccountClosed;
     }
 
@@ -153,11 +175,12 @@ public class BankAccount {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  
         LocalDateTime now = LocalDateTime.now();  
 
-        if ((depositFunds > 0) && (accountStatus = true)) {
+        if ((depositFunds > 0) && (!isClosed)) {
+            
             accountBalance += (depositFunds);
             String successfulTransaction;
 
-            successfulTransaction = "deposit $" + depositFunds + "at" + (dtf.format(now));
+            successfulTransaction = "deposit $" + depositFunds + " at " + (dtf.format(now) + "\r\n Account Balance: $" +accountBalance);
             transactions.add(successfulTransaction);
             System.out.println(successfulTransaction);
 
@@ -165,6 +188,7 @@ public class BankAccount {
 
             System.out.println("IllegalArgumentException");
             System.out.println("Account Closed or Invalid amount");  // exception handling?
+            throw new IllegalArgumentException("Account is closed. Transaction aborted.");
 
         }
 
@@ -175,12 +199,12 @@ public class BankAccount {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  
         LocalDateTime now = LocalDateTime.now(); 
 
-        if ((withdrawFunds > 0) && (accountStatus = true)) {
+        if ((withdrawFunds > 0) && (!isClosed)) {
             if (accountBalance > withdrawFunds) {
                 accountBalance-=withdrawFunds;
                 String successfulTransaction;
 
-                successfulTransaction = "deposit $" + withdrawFunds + " at " + (dtf.format(now));
+                successfulTransaction = "withdraw $" + withdrawFunds + " at " + (dtf.format(now) + "\r\n Account Balance: $" +accountBalance);
                 transactions.add(successfulTransaction);
                 System.out.println(successfulTransaction);
             }
@@ -189,6 +213,15 @@ public class BankAccount {
             System.out.println("Account Closed or Invalid amount or Insufficient balance"); 
         }
     }
+
+
+    @Override
+    public String toString() {
+        return "BankAccount [accountHolderName=" + accountHolderName + ", accountNumber=" + accountNumber
+                + ", accountBalance=" + accountBalance + ", transactions=" + transactions + "]";
+    }
+
+    
 
     
 }

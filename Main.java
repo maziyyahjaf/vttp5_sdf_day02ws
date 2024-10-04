@@ -6,6 +6,9 @@ public class Main {
 
         BankAccount newAccount = new BankAccount("Adam");
         newAccount.deposit(100);
+        newAccount.deposit(1000);
+        newAccount.withdraw(50);
+
 
     }
 }
